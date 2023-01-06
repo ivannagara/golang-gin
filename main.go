@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"github.com/ivannagara/golang-gin/handlers"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -23,15 +25,22 @@ var recipesHandler *handlers.RecipesHandler
 func init() {
 	// recipes = make([]Recipe, 0)
 	// read the recipes.json file
-	// ------------------------------------------------
+	// ------------------------------------------------|
 	// file, _ := os.ReadFile("recipes.json")          |
 	//												   |
 	// _ = json.Unmarshal([]byte(file), &recipes)      |
-	// ------------------------------------------------
+	// ------------------------------------------------|
 	// the background context is an empty context that will be used
 	// and does not have any deadline and is never cancelled.
 	// Background context is usually used for initialization,  tests, main function,
 	// and as the top-level context for upcoming requests.
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	status := redisClient.Ping()
+	fmt.Println(status)
 	ctx = context.Background()
 	client, err = mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	// The [Ping] function is used to check if the connection to the database is valid
@@ -40,7 +49,7 @@ func init() {
 	}
 	log.Println("Connected to MongoDB")
 	collection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("recipes")
-	recipesHandler = handlers.NewRecipesHandler(ctx, collection)
+	recipesHandler = handlers.NewRecipesHandler(ctx, collection, redisClient)
 	// var listOfRecipes []interface{}
 	// for _, recipe := range recipes {
 	// 	listOfRecipes = append(listOfRecipes, recipe)
@@ -60,4 +69,8 @@ func main() {
 	router.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
 	// router.DELETE("/recipes/:id", DeleteRecipeHandler)
 	router.Run()
+}
+
+func Add(a int, b int) int {
+	return a + b
 }
