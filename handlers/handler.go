@@ -112,20 +112,17 @@ func (handler *RecipesHandler) UpdateRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Recipe has been updated"})
 }
 
-// func DeleteRecipeHandler(c *gin.Context) {
-// 	id := c.Param("id")
-// 	index := -1
-// 	for i := 0; i < len(recipes); i++ {
-// 		if recipes[i].ID == id {
-// 			index = i
-// 		}
-// 	}
-// 	if index == -1 {
-// 		c.JSON(http.StatusBadRequest, gin.H{
-// 			"error": "Recipe not found"})
-// 		return
-// 	}
-// 	recipes = append(recipes[:index], recipes[index+1:]...)
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": "Recipe has been deleted"})
-// }
+func (handler *RecipesHandler) DeleteRecipeHandler(c *gin.Context) {
+	id := c.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": "Error geting object ID"})
+		return
+	}
+	_, err2 := handler.collection.DeleteOne(handler.ctx, bson.M{"_id": objectId})
+	if err2 != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": err2.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully deleted"})
+}
