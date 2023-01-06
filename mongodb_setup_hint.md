@@ -55,3 +55,6 @@ The MONGO_DATABASE is also specified in the GoLang code of
 {
     os.Getenv("MONGO_DATABASE")
 }
+
+5) You should also initiate the REDIS image as a running container
+because the code now also uses the REDIS container as well
